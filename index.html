@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>TM單字-P2 - Vocabulary App</title>
+    <title>單字小達人 - Vocabulary App</title>
     
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
@@ -205,9 +205,6 @@
           const [showSpellingAnswer, setShowSpellingAnswer] = useState(false);
           const inputRef = useRef(null);
 
-          // Image Asset
-          const customImage = "Gemini_Generated_Image_l5i6izl5i6izl5i6.jpg";
-
           // Filter Logic
           const filteredData = useMemo(() => {
             return allVocabularyData.filter(item => {
@@ -280,6 +277,17 @@
               window.speechSynthesis.cancel();
               const utterance = new SpeechSynthesisUtterance(text);
               utterance.lang = 'en-US';
+              
+              // Attempt to set a specific US English voice
+              const voices = window.speechSynthesis.getVoices();
+              // Prioritize Google US English or Microsoft David/Zira if available, otherwise any en-US
+              const usVoice = voices.find(v => v.lang === 'en-US' && (v.name.includes('Google') || v.name.includes('Microsoft'))) || 
+                              voices.find(v => v.lang === 'en-US');
+              
+              if (usVoice) {
+                  utterance.voice = usVoice;
+              }
+
               utterance.rate = 0.8;
               window.speechSynthesis.speak(utterance);
             }
@@ -411,23 +419,10 @@
                     
                     {/* Logo & Desktop Nav */}
                     <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-2">
-                        {/* 替換原本的 BookOpen Icon 為使用者圖片，若讀取失敗則顯示 Fallback */}
-                        <img 
-                            src={customImage} 
-                            alt="Logo" 
-                            className="w-10 h-10 rounded-lg object-cover bg-white/10"
-                            onError={(e) => {
-                                e.target.style.display = 'none';
-                                e.target.nextSibling.style.display = 'block';
-                            }}
-                        />
-                        <Icons.BookOpen className="w-8 h-8 hidden" /> {/* Fallback Icon */}
-                        <h1 className="text-xl md:text-2xl font-bold">
-                            TM單字-P2
-                        </h1>
-                      </div>
-                      
+                      <h1 className="text-xl md:text-2xl font-bold flex items-center gap-2">
+                        <Icons.BookOpen className="w-6 h-6 md:w-8 md:h-8" />
+                        單字小達人
+                      </h1>
                       {/* Desktop Nav (Visible only on md+) */}
                       <div className="hidden md:block ml-8">
                         <NavItems />
@@ -442,7 +437,7 @@
 
                     {/* Filter Controls & Desktop Stats */}
                     <div className="flex items-center justify-between md:gap-4">
-                        <div className="hidden md:flex text-sm bg-white/10 px-3 py-1.5 rounded-full items-center gap-2">
+                       <div className="hidden md:flex text-sm bg-white/10 px-3 py-1.5 rounded-full items-center gap-2">
                         <Icons.LayoutGrid className="w-4 h-4" />
                         {filteredData.length} Words Loaded
                       </div>
@@ -469,10 +464,10 @@
                 {/* Flashcard Mode */}
                 {activeTab === 'cards' && filteredData.length > 0 && (
                   <div className="flex flex-col min-h-[60vh] md:min-h-[70vh] justify-center items-center max-w-2xl mx-auto">
-                      {/* Unit/Lesson Badge */}
-                      <div className="mb-6 text-xs md:text-sm font-bold text-slate-400 uppercase tracking-widest bg-slate-200 px-4 py-1.5 rounded-full">
+                     {/* Unit/Lesson Badge */}
+                     <div className="mb-6 text-xs md:text-sm font-bold text-slate-400 uppercase tracking-widest bg-slate-200 px-4 py-1.5 rounded-full">
                         Unit {filteredData[currentCardIndex].unit} — Lesson {filteredData[currentCardIndex].lesson}
-                      </div>
+                     </div>
 
                     <div className="relative w-full max-w-xs md:max-w-md aspect-[3/4] md:aspect-[4/3] perspective-1000 group cursor-pointer" onClick={() => setIsFlipped(!isFlipped)}>
                       <div 
@@ -485,15 +480,7 @@
                            className="absolute w-full h-full backface-hidden bg-white rounded-3xl shadow-xl hover:shadow-2xl transition-shadow flex flex-col items-center justify-center border-2 border-indigo-100 p-8 md:p-12"
                            style={{ zIndex: isFlipped ? 0 : 10 }}
                         >
-                          {/* Image inserted here on Flashcard */}
-                          <img 
-                            src={customImage} 
-                            alt="Decoration"
-                            className="w-32 h-32 object-contain mb-4 rounded-xl shadow-sm bg-slate-50"
-                            onError={(e) => e.target.style.display = 'none'}
-                          />
-
-                          <div className="text-sm md:text-base text-indigo-400 font-bold uppercase tracking-wider mb-2">English</div>
+                          <div className="text-sm md:text-base text-indigo-400 font-bold uppercase tracking-wider mb-6">English</div>
                           <h2 className="text-5xl md:text-7xl font-bold text-slate-800 text-center mb-8 break-words w-full leading-tight select-none">
                             {filteredData[currentCardIndex].en}
                           </h2>
@@ -552,17 +539,8 @@
                   <div className="flex flex-col py-4 max-w-3xl mx-auto min-h-[60vh]">
                     
                     {quizPhase === 'finished' ? (
-                        /* Finished Screen */
-                        <div className="bg-white rounded-3xl shadow-xl p-10 text-center animate-bounce-in flex flex-col items-center justify-center h-full min-h-[400px]">
-                          
-                          {/* 顯示使用者圖片作為獎勵 */}
-                          <img 
-                            src={customImage} 
-                            alt="Congratulations" 
-                            className="w-full max-w-sm rounded-xl shadow-lg mb-8 object-cover"
-                            onError={(e) => e.target.style.display = 'none'}
-                           />
-
+                       /* Finished Screen */
+                       <div className="bg-white rounded-3xl shadow-xl p-10 text-center animate-bounce-in flex flex-col items-center justify-center h-full min-h-[400px]">
                           <div className="w-24 h-24 bg-yellow-100 text-yellow-500 rounded-full flex items-center justify-center mb-6">
                              <Icons.Trophy className="w-12 h-12" />
                           </div>
@@ -580,7 +558,7 @@
                           >
                              <Icons.RefreshCw className="w-6 h-6" /> 重新測驗
                           </button>
-                        </div>
+                       </div>
                     ) : (
                       /* Playing Screen */
                       <>
@@ -628,15 +606,6 @@
                           {quizSubMode === 'choice' ? (
                               <>
                                   <h3 className="text-lg text-slate-400 mb-4">這個單字的意思是？</h3>
-                                  
-                                  {/* Image inserted here in Quiz Choice Mode */}
-                                  <img 
-                                    src={customImage} 
-                                    alt="Quiz"
-                                    className="w-24 h-24 mx-auto mb-4 object-contain rounded-lg shadow-sm"
-                                    onError={(e) => e.target.style.display = 'none'}
-                                  />
-                                  
                                   <h2 className="text-5xl md:text-6xl font-bold text-slate-800 mb-6">{quizQuestion.en}</h2>
                                   <button 
                                     onClick={() => speak(quizQuestion.en)}
@@ -794,7 +763,7 @@
                         </div>
                       ))}
                     </div>
-                      {filteredData.length === 0 && <div className="p-12 text-center text-slate-400">清單是空的</div>}
+                     {filteredData.length === 0 && <div className="p-12 text-center text-slate-400">清單是空的</div>}
                   </div>
                 )}
 
